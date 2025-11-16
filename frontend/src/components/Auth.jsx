@@ -32,7 +32,15 @@ const Auth = ({ onLogin, setIsLoading }) => {
       const response = await authAPI.login(loginData.email, loginData.password);
       onLogin(response.data.user, response.data.token);
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed');
+      // Handle validation errors from backend
+      if (err.response?.data?.details && Array.isArray(err.response.data.details)) {
+        const validationErrors = err.response.data.details
+          .map((detail) => detail.message)
+          .join(', ');
+        setError(validationErrors);
+      } else {
+        setError(err.response?.data?.error || 'Login failed');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -47,13 +55,39 @@ const Auth = ({ onLogin, setIsLoading }) => {
       return;
     }
 
+    if (signupData.name.length < 2) {
+      setError('Name must be at least 2 characters');
+      return;
+    }
+
     if (signupData.password !== signupData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
-    if (signupData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+    // Strict password validation to match backend
+    if (signupData.password.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+
+    if (!/[A-Z]/.test(signupData.password)) {
+      setError('Password must contain at least one uppercase letter');
+      return;
+    }
+
+    if (!/[a-z]/.test(signupData.password)) {
+      setError('Password must contain at least one lowercase letter');
+      return;
+    }
+
+    if (!/[0-9]/.test(signupData.password)) {
+      setError('Password must contain at least one number');
+      return;
+    }
+
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(signupData.password)) {
+      setError('Password must contain at least one special character');
       return;
     }
 
@@ -66,7 +100,15 @@ const Auth = ({ onLogin, setIsLoading }) => {
       );
       onLogin(response.data.user, response.data.token);
     } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed');
+      // Handle validation errors from backend
+      if (err.response?.data?.details && Array.isArray(err.response.data.details)) {
+        const validationErrors = err.response.data.details
+          .map((detail) => detail.message)
+          .join(', ');
+        setError(validationErrors);
+      } else {
+        setError(err.response?.data?.error || 'Registration failed');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -157,6 +199,9 @@ const Auth = ({ onLogin, setIsLoading }) => {
                       onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
                       required
                     />
+                    <p className="text-xs text-gray-500">
+                      Must be at least 8 characters with uppercase, lowercase, number, and special character
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signupConfirmPassword">Confirm Password</Label>

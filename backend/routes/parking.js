@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
+const { validate, schemas } = require('../validators/validation');
 const ParkingSlot = require('../models/ParkingSlot');
 
 // Get all available parking slots
@@ -34,13 +35,9 @@ router.get('/booking', authenticateToken, async (req, res) => {
 });
 
 // Book a parking slot
-router.post('/book', authenticateToken, async (req, res) => {
+router.post('/book', authenticateToken, validate({ body: schemas.bookSlotSchema }), async (req, res) => {
   try {
     const { slotId, vehicleNumber } = req.body;
-
-    if (!slotId || !vehicleNumber) {
-      return res.status(400).json({ error: 'Slot ID and vehicle number are required' });
-    }
 
     // Check if user already has a booking
     const existingBooking = await ParkingSlot.findOne({
@@ -49,7 +46,7 @@ router.post('/book', authenticateToken, async (req, res) => {
     });
 
     if (existingBooking) {
-      return res.status(400).json({ error: 'You already have an active booking' });
+      return res.status(409).json({ error: 'You already have an active booking' });
     }
 
     // Find and update slot
@@ -60,11 +57,11 @@ router.post('/book', authenticateToken, async (req, res) => {
     }
 
     if (slot.status !== 'available') {
-      return res.status(400).json({ error: 'Slot is not available' });
+      return res.status(409).json({ error: 'Slot is not available' });
     }
 
     slot.status = 'occupied';
-    slot.vehicleNumber = vehicleNumber.toUpperCase();
+    slot.vehicleNumber = vehicleNumber; // Already transformed to uppercase by Zod
     slot.bookingTime = new Date();
     slot.bookedBy = req.user.id;
 
