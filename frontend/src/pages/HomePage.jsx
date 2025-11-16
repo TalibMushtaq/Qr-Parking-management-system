@@ -1,8 +1,14 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '../components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Car, Shield, QrCode, Clock } from 'lucide-react';
+import React from "react";
+import { Link } from "react-router-dom";
+import { Button } from "../components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Car, Shield, QrCode, Clock } from "lucide-react";
 
 const HomePage = () => {
   return (
@@ -34,7 +40,8 @@ const HomePage = () => {
             Smart Parking Management System
           </h2>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Effortlessly manage parking spaces with QR code technology. Book, track, and manage your parking slots in real-time.
+            Effortlessly manage parking spaces with QR code technology. Book,
+            track, and manage your parking slots in real-time.
           </p>
           <div className="flex justify-center gap-4">
             <Link to="/user/register">
@@ -117,7 +124,9 @@ const HomePage = () => {
                   <Button className="w-full">Login</Button>
                 </Link>
                 <Link to="/user/register" className="flex-1">
-                  <Button variant="outline" className="w-full">Sign Up</Button>
+                  <Button variant="outline" className="w-full">
+                    Sign Up
+                  </Button>
                 </Link>
               </div>
             </CardContent>
@@ -130,7 +139,8 @@ const HomePage = () => {
                 For Administrators
               </CardTitle>
               <CardDescription className="text-base">
-                Manage parking slots, view statistics, and control system settings
+                Manage parking slots, view statistics, and control system
+                settings
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -163,4 +173,3 @@ const HomePage = () => {
 };
 
 export default HomePage;
-

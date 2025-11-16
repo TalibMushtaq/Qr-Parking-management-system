@@ -1,33 +1,35 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const User = require('../models/User');
-const { validate, schemas } = require('../validators/validation');
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+const User = require("../models/User");
+const { validate, schemas } = require("../validators/validation");
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required');
+  throw new Error("JWT_SECRET environment variable is required");
 }
 
 // Initialize default admin user
 async function initializeAdminUser() {
   try {
-    const adminExists = await User.findOne({ email: 'admin@parking.com' });
+    const adminExists = await User.findOne({ email: "admin@parking.com" });
     if (!adminExists) {
       // Use bcrypt to hash admin password
-      const hashedPassword = await bcrypt.hash('Admin@123', 10);
+      const hashedPassword = await bcrypt.hash("Admin@123", 10);
       const admin = new User({
-        name: 'Admin User',
-        email: 'admin@parking.com',
+        name: "Admin User",
+        email: "admin@parking.com",
         password: hashedPassword,
-        role: 'admin'
+        role: "admin",
       });
       await admin.save();
-      console.log('Admin user created with email: admin@parking.com, password: Admin@123');
+      console.log(
+        "Admin user created with email: admin@parking.com, password: Admin@123"
+      );
     }
   } catch (error) {
-    console.error('Error initializing admin user:', error);
+    console.error("Error initializing admin user:", error);
   }
 }
 
@@ -35,178 +37,202 @@ async function initializeAdminUser() {
 initializeAdminUser();
 
 // Register new user
-router.post('/register', validate({ body: schemas.registerSchema }), async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
+router.post(
+  "/register",
+  validate({ body: schemas.registerSchema }),
+  async (req, res) => {
+    try {
+      const { name, email, password, vehicleNumber } = req.body;
 
-    const existingUser = await User.findOne({ email });
+      const existingUser = await User.findOne({ email });
 
-    if (existingUser) {
-      return res.status(409).json({ error: 'Email already registered' });
-    }
-
-    const newUser = new User({
-      name,
-      email,
-      password, // Will be hashed by pre-save hook
-      role: 'user'
-    });
-
-    await newUser.save();
-
-    const token = jwt.sign(
-      { id: newUser._id.toString(), email: newUser.email, role: newUser.role },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    res.status(201).json({
-      message: 'User registered successfully',
-      token,
-      user: {
-        id: newUser._id.toString(),
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role
+      if (existingUser) {
+        return res.status(409).json({ error: "Email already registered" });
       }
-    });
-  } catch (error) {
-    if (error.code === 11000) {
-      return res.status(409).json({ error: 'Email already registered' });
+
+      const newUser = new User({
+        name,
+        email,
+        password, // Will be hashed by pre-save hook
+        vehicleNumber,
+        role: "user",
+      });
+
+      await newUser.save();
+
+      const token = jwt.sign(
+        {
+          id: newUser._id.toString(),
+          email: newUser.email,
+          role: newUser.role,
+        },
+        JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      res.status(201).json({
+        message: "User registered successfully",
+        token,
+        user: {
+          id: newUser._id.toString(),
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          vehicleNumber: newUser.vehicleNumber,
+        },
+      });
+    } catch (error) {
+      if (error.code === 11000) {
+        return res.status(409).json({ error: "Email already registered" });
+      }
+      console.error("Registration error:", error);
+      res.status(500).json({ error: "Server error" });
     }
-    console.error('Registration error:', error);
-    res.status(500).json({ error: 'Server error' });
   }
-});
+);
 
 // Login user
-router.post('/login', validate({ body: schemas.loginSchema }), async (req, res) => {
-  try {
-    const { email, password } = req.body;
+router.post(
+  "/login",
+  validate({ body: schemas.loginSchema }),
+  async (req, res) => {
+    try {
+      const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+      const user = await User.findOne({ email });
 
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    const isPasswordValid = await user.comparePassword(password);
-
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    // Check if user is blocked
-    if (user.isBlocked) {
-      return res.status(403).json({ 
-        error: 'Your account has been blocked. Please contact administrator.',
-        code: 'USER_BLOCKED'
-      });
-    }
-
-    const token = jwt.sign(
-      { id: user._id.toString(), email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    res.json({
-      message: 'Login successful',
-      token,
-      user: {
-        id: user._id.toString(),
-        name: user.name,
-        email: user.email,
-        role: user.role
+      if (!user) {
+        return res.status(401).json({ error: "Invalid email or password" });
       }
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Server error' });
+
+      const isPasswordValid = await user.comparePassword(password);
+
+      if (!isPasswordValid) {
+        return res.status(401).json({ error: "Invalid email or password" });
+      }
+
+      // Check if user is blocked
+      if (user.isBlocked) {
+        return res.status(403).json({
+          error: "Your account has been blocked. Please contact administrator.",
+          code: "USER_BLOCKED",
+        });
+      }
+
+      const token = jwt.sign(
+        { id: user._id.toString(), email: user.email, role: user.role },
+        JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      res.json({
+        message: "Login successful",
+        token,
+        user: {
+          id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          vehicleNumber: user.vehicleNumber,
+        },
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ error: "Server error" });
+    }
   }
-});
+);
 
 // Admin login endpoint - dedicated for admin authentication
-router.post('/admin/login', validate({ body: schemas.loginSchema }), async (req, res) => {
-  try {
-    const { email, password } = req.body;
+router.post(
+  "/admin/login",
+  validate({ body: schemas.loginSchema }),
+  async (req, res) => {
+    try {
+      const { email, password } = req.body;
 
-    // Find user by email
-    const user = await User.findOne({ email });
+      // Find user by email
+      const user = await User.findOne({ email });
 
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    // Verify password
-    const isPasswordValid = await user.comparePassword(password);
-
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    // Check if user is blocked
-    if (user.isBlocked) {
-      return res.status(403).json({ 
-        error: 'Your account has been blocked. Please contact administrator.',
-        code: 'USER_BLOCKED'
-      });
-    }
-
-    // Strictly check if user is admin
-    if (user.role !== 'admin') {
-      return res.status(403).json({ 
-        error: 'Access denied. Admin credentials required.',
-        code: 'NOT_ADMIN'
-      });
-    }
-
-    // Generate JWT token
-    const token = jwt.sign(
-      { id: user._id.toString(), email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    // Log admin login for security tracking
-    console.log(`Admin login successful: ${user.email} at ${new Date().toISOString()}`);
-
-    res.json({
-      message: 'Admin login successful',
-      token,
-      user: {
-        id: user._id.toString(),
-        name: user.name,
-        email: user.email,
-        role: user.role
+      if (!user) {
+        return res.status(401).json({ error: "Invalid email or password" });
       }
-    });
-  } catch (error) {
-    console.error('Admin login error:', error);
-    res.status(500).json({ error: 'Server error' });
+
+      // Verify password
+      const isPasswordValid = await user.comparePassword(password);
+
+      if (!isPasswordValid) {
+        return res.status(401).json({ error: "Invalid email or password" });
+      }
+
+      // Check if user is blocked
+      if (user.isBlocked) {
+        return res.status(403).json({
+          error: "Your account has been blocked. Please contact administrator.",
+          code: "USER_BLOCKED",
+        });
+      }
+
+      // Strictly check if user is admin
+      if (user.role !== "admin") {
+        return res.status(403).json({
+          error: "Access denied. Admin credentials required.",
+          code: "NOT_ADMIN",
+        });
+      }
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { id: user._id.toString(), email: user.email, role: user.role },
+        JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      // Log admin login for security tracking
+      console.log(
+        `Admin login successful: ${user.email} at ${new Date().toISOString()}`
+      );
+
+      res.json({
+        message: "Admin login successful",
+        token,
+        user: {
+          id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          vehicleNumber: user.vehicleNumber,
+        },
+      });
+    } catch (error) {
+      console.error("Admin login error:", error);
+      res.status(500).json({ error: "Server error" });
+    }
   }
-});
+);
 
 // Verify token
-router.get('/verify', async (req, res) => {
+router.get("/verify", async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'No token provided' });
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "No token provided" });
     }
 
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.split(" ")[1];
 
     if (!token) {
-      return res.status(401).json({ error: 'Invalid authorization header format' });
+      return res
+        .status(401)
+        .json({ error: "Invalid authorization header format" });
     }
 
     const decoded = jwt.verify(token, JWT_SECRET);
     const user = await User.findById(decoded.id);
 
     if (!user) {
-      return res.status(401).json({ error: 'User not found' });
+      return res.status(401).json({ error: "User not found" });
     }
 
     res.json({
@@ -214,18 +240,19 @@ router.get('/verify', async (req, res) => {
         id: user._id.toString(),
         name: user.name,
         email: user.email,
-        role: user.role
-      }
+        role: user.role,
+        vehicleNumber: user.vehicleNumber,
+      },
     });
   } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ error: 'Invalid token' });
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({ error: "Invalid token" });
     }
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Token expired' });
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ error: "Token expired" });
     }
-    console.error('Token verification error:', error);
-    res.status(401).json({ error: 'Token verification failed' });
+    console.error("Token verification error:", error);
+    res.status(401).json({ error: "Token verification failed" });
   }
 });
 

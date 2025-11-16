@@ -3,9 +3,9 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import HomePage from "./pages/HomePage";
 import UserAuth from "./pages/UserAuth";
-import AdminSigninPage from "./pages/AdminSigninPage";
+import AdminLogin from "./pages/AdminLogin";
 import UserDashboardPage from "./pages/UserDashboardPage";
-import AdminDashboardPage from "./pages/AdminDashboardPage";
+import AdminDashboard from "./pages/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -40,7 +40,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/user/login" element={<UserAuth />} />
         <Route path="/user/register" element={<UserAuth />} />
-        <Route path="/admin/login" element={<AdminSigninPage />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
 
         {/* Protected Routes */}
         <Route
@@ -55,7 +55,7 @@ function App() {
           path="/admin/dashboard"
           element={
             <ProtectedRoute requiredRole="admin">
-              <AdminDashboardPage />
+              <AdminDashboard />
             </ProtectedRoute>
           }
         />

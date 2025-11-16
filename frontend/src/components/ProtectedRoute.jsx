@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
-import { authAPI } from '../services/api';
-import LoadingOverlay from './LoadingOverlay';
+import React, { useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
+import { authAPI } from "../services/api";
+import LoadingOverlay from "./LoadingOverlay";
 
 const ProtectedRoute = ({ children, requiredRole = null }) => {
   const [user, setUser] = useState(null);
@@ -12,17 +12,15 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
   }, []);
 
   const checkAuth = async () => {
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
+    const token = localStorage.getItem("token");
 
-    if (token && storedUser) {
+    if (token) {
       try {
         const response = await authAPI.verify();
         const userData = response.data.user;
         setUser(userData);
       } catch (error) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        localStorage.removeItem("token");
         setUser(null);
       }
     }
@@ -34,8 +32,7 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
   }
 
   if (!user) {
-    // Redirect to appropriate login page
-    if (requiredRole === 'admin') {
+    if (requiredRole === "admin") {
       return <Navigate to="/admin/login" replace />;
     }
     return <Navigate to="/user/login" replace />;
@@ -44,8 +41,8 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
   // Check if user has required role
   if (requiredRole && user.role !== requiredRole) {
     // Redirect to appropriate dashboard
-    if (user.role === 'admin') {
-      return <Navigate to="/admin" replace />;
+    if (user.role === "admin") {
+      return <Navigate to="/admin/dashboard" replace />;
     }
     return <Navigate to="/user/dashboard" replace />;
   }
@@ -54,4 +51,3 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
 };
 
 export default ProtectedRoute;
-
