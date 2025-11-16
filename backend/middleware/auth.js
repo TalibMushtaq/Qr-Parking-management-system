@@ -1,7 +1,10 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
 
 // Authenticate token middleware
 const authenticateToken = async (req, res, next) => {
@@ -28,7 +31,14 @@ const authenticateToken = async (req, res, next) => {
 
     next();
   } catch (error) {
-    return res.status(403).json({ error: 'Invalid or expired token' });
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(403).json({ error: 'Invalid token' });
+    }
+    if (error.name === 'TokenExpiredError') {
+      return res.status(403).json({ error: 'Token expired' });
+    }
+    console.error('Token authentication error:', error);
+    return res.status(403).json({ error: 'Token verification failed' });
   }
 };
 

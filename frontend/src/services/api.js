@@ -40,6 +40,7 @@ api.interceptors.response.use(
 // Auth API
 export const authAPI = {
   login: (email, password) => api.post('/auth/login', { email, password }),
+  adminLogin: (email, password) => api.post('/auth/admin/login', { email, password }),
   register: (name, email, password) => api.post('/auth/register', { name, email, password }),
   verify: () => api.get('/auth/verify')
 };

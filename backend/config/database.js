@@ -8,9 +8,33 @@ const connectDB = async () => {
 
     // Initialize parking slots if they don't exist
     await initializeParkingSlots();
+    
+    return conn;
   } catch (error) {
     console.error('Error connecting to MongoDB:', error.message);
     process.exit(1);
+  }
+};
+
+// Function to check successful MongoDB connection
+const checkConnection = (port) => {
+  if (mongoose.connection.readyState === 1) {
+    const conn = mongoose.connection;
+    console.log('\n✅ ==========================================');
+    console.log('   DATABASE CONNECTION SUCCESSFUL');
+    console.log('==========================================');
+    console.log(`   Database: ${conn.name}`);
+    console.log(`   Host: ${conn.host}`);
+    console.log(`   Port: ${conn.port}`);
+    console.log(`   Server Port: ${port}`);
+    console.log(`   Connection State: Connected (${conn.readyState})`);
+    console.log('==========================================\n');
+    return true;
+  } else {
+    console.log('\n❌ MongoDB connection check failed');
+    console.log(`   Connection State: ${mongoose.connection.readyState}`);
+    console.log('   States: 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting\n');
+    return false;
   }
 };
 
@@ -42,5 +66,5 @@ const initializeParkingSlots = async () => {
   }
 };
 
-module.exports = connectDB;
+module.exports = { connectDB, checkConnection };
 

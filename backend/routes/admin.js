@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const QRCode = require('qrcode');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { validate, schemas } = require('../validators/validation');
 const ParkingSlot = require('../models/ParkingSlot');
 
 // Configure multer for file uploads
@@ -38,13 +39,9 @@ router.get('/slots', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 // Release a parking slot
-router.post('/release', authenticateToken, requireAdmin, async (req, res) => {
+router.post('/release', authenticateToken, requireAdmin, validate({ body: schemas.releaseSlotSchema }), async (req, res) => {
   try {
     const { slotId } = req.body;
-
-    if (!slotId) {
-      return res.status(400).json({ error: 'Slot ID is required' });
-    }
 
     const slot = await ParkingSlot.findOne({ id: slotId });
 
@@ -68,7 +65,7 @@ router.post('/release', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 // Generate QR code for a slot
-router.get('/qr/:slotId', authenticateToken, requireAdmin, async (req, res) => {
+router.get('/qr/:slotId', authenticateToken, requireAdmin, validate({ params: schemas.slotIdParamSchema }), async (req, res) => {
   try {
     const { slotId } = req.params;
     const slot = await ParkingSlot.findOne({ id: slotId });

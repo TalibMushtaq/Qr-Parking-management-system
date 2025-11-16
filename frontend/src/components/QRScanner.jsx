@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { adminAPI } from '../services/api';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { Alert, AlertDescription } from './ui/alert';
 import { Label } from './ui/label';
 
 const QRScanner = ({ setIsLoading, onClose }) => {
@@ -14,6 +14,7 @@ const QRScanner = ({ setIsLoading, onClose }) => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
       setError('Please select an image file');
       return;
     }
@@ -25,8 +26,15 @@ const QRScanner = ({ setIsLoading, onClose }) => {
     try {
       const response = await adminAPI.scanQR(file);
       setScanResult(response.data);
+      if (response.data.valid) {
+        toast.success('QR code scanned successfully!');
+      } else {
+        toast.error(response.data.message || 'Invalid QR code');
+      }
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to scan QR code');
+      const errorMsg = err.response?.data?.error || 'Failed to scan QR code';
+      toast.error(errorMsg);
+      setError(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -50,43 +58,33 @@ const QRScanner = ({ setIsLoading, onClose }) => {
           />
         </div>
 
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
         {scanResult && (
-          <div className="space-y-2">
-            <h4 className="font-semibold">Scan Result</h4>
+          <div className="space-y-2 p-4 rounded-lg border-2">
+            <h4 className="font-semibold text-lg mb-3">Scan Result</h4>
             {scanResult.valid ? (
-              <Alert className="bg-green-50 border-green-200">
-                <AlertDescription className="text-green-800">
-                  <div className="space-y-2">
-                    <h4 className="font-semibold">Valid Parking</h4>
-                    <p>
-                      Slot ID: <strong>{scanResult.slot.id}</strong>
-                    </p>
-                    <p>
-                      Vehicle Number: <strong>{scanResult.slot.vehicleNumber}</strong>
-                    </p>
-                    <p>
-                      Parking Duration:{' '}
-                      <strong>
-                        {scanResult.slot.duration.hours}h {scanResult.slot.duration.minutes}m
-                      </strong>
-                    </p>
-                    <p>Booked at: {new Date(scanResult.slot.bookingTime).toLocaleString()}</p>
-                  </div>
-                </AlertDescription>
-              </Alert>
+              <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 space-y-2">
+                <h4 className="font-semibold text-green-800">Valid Parking</h4>
+                <p className="text-green-700">
+                  Slot ID: <strong>{scanResult.slot.id}</strong>
+                </p>
+                <p className="text-green-700">
+                  Vehicle Number: <strong>{scanResult.slot.vehicleNumber}</strong>
+                </p>
+                <p className="text-green-700">
+                  Parking Duration:{' '}
+                  <strong>
+                    {scanResult.slot.duration.hours}h {scanResult.slot.duration.minutes}m
+                  </strong>
+                </p>
+                <p className="text-green-700">
+                  Booked at: {new Date(scanResult.slot.bookingTime).toLocaleString()}
+                </p>
+              </div>
             ) : (
-              <Alert variant="destructive">
-                <AlertDescription>
-                  <h4 className="font-semibold">Invalid Parking</h4>
-                  <p>{scanResult.message || 'This slot is not currently occupied.'}</p>
-                </AlertDescription>
-              </Alert>
+              <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4">
+                <h4 className="font-semibold text-red-800">Invalid Parking</h4>
+                <p className="text-red-700">{scanResult.message || 'This slot is not currently occupied.'}</p>
+              </div>
             )}
           </div>
         )}
