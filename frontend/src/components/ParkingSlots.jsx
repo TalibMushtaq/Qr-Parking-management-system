@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Card, CardContent } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
@@ -16,7 +17,7 @@ const ParkingSlots = ({ slots, onBook }) => {
       onBook(slotId, vehicleNumber);
       setVehicleNumbers({ ...vehicleNumbers, [slotId]: '' });
     } else {
-      alert('Please enter a vehicle number');
+      toast.error('Please enter a vehicle number');
     }
   };
 

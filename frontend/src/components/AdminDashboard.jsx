@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { adminAPI } from '../services/api';
 import AdminStats from './AdminStats';
 import AdminParkingSlots from './AdminParkingSlots';
@@ -41,9 +42,9 @@ const AdminDashboard = ({ setIsLoading }) => {
       setIsLoading(true);
       await adminAPI.releaseSlot(slotId);
       await loadData();
-      alert(`Slot ${slotId} released successfully`);
+      toast.success(`Slot ${slotId} released successfully`);
     } catch (error) {
-      alert(error.response?.data?.error || 'Failed to release slot');
+      toast.error(error.response?.data?.error || 'Failed to release slot');
     } finally {
       setIsLoading(false);
     }

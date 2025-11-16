@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { authAPI } from '../services/api';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -17,6 +18,9 @@ const Auth = ({ onLogin, setIsLoading }) => {
     confirmPassword: ''
   });
   const [error, setError] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -147,14 +151,29 @@ const Auth = ({ onLogin, setIsLoading }) => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="loginPassword">Password</Label>
-                    <Input
-                      id="loginPassword"
-                      type="password"
-                      placeholder="Enter your password"
-                      value={loginData.password}
-                      onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                      required
-                    />
+                    <div className="relative">
+                      <Input
+                        id="loginPassword"
+                        type={showLoginPassword ? 'text' : 'password'}
+                        placeholder="Enter your password"
+                        value={loginData.password}
+                        onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                        className="pr-10"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowLoginPassword(!showLoginPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                        aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showLoginPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                   {error && (
                     <Alert variant="destructive">
@@ -191,30 +210,60 @@ const Auth = ({ onLogin, setIsLoading }) => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signupPassword">Password</Label>
-                    <Input
-                      id="signupPassword"
-                      type="password"
-                      placeholder="Enter your password"
-                      value={signupData.password}
-                      onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                      required
-                    />
+                    <div className="relative">
+                      <Input
+                        id="signupPassword"
+                        type={showSignupPassword ? 'text' : 'password'}
+                        placeholder="Enter your password"
+                        value={signupData.password}
+                        onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                        className="pr-10"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowSignupPassword(!showSignupPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                        aria-label={showSignupPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showSignupPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                     <p className="text-xs text-gray-500">
                       Must be at least 8 characters with uppercase, lowercase, number, and special character
                     </p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signupConfirmPassword">Confirm Password</Label>
-                    <Input
-                      id="signupConfirmPassword"
-                      type="password"
-                      placeholder="Confirm your password"
-                      value={signupData.confirmPassword}
-                      onChange={(e) =>
-                        setSignupData({ ...signupData, confirmPassword: e.target.value })
-                      }
-                      required
-                    />
+                    <div className="relative">
+                      <Input
+                        id="signupConfirmPassword"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        placeholder="Confirm your password"
+                        value={signupData.confirmPassword}
+                        onChange={(e) =>
+                          setSignupData({ ...signupData, confirmPassword: e.target.value })
+                        }
+                        className="pr-10"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                        aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                   {error && (
                     <Alert variant="destructive">

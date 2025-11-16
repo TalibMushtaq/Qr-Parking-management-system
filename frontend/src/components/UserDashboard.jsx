@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { parkingAPI } from '../services/api';
 import CurrentBooking from './CurrentBooking';
 import ParkingSlots from './ParkingSlots';
@@ -34,9 +35,9 @@ const UserDashboard = ({ setIsLoading }) => {
       setIsLoading(true);
       await parkingAPI.bookSlot(slotId, vehicleNumber);
       await loadData();
-      alert(`Slot ${slotId} booked successfully for vehicle ${vehicleNumber}`);
+      toast.success(`Slot ${slotId} booked successfully for vehicle ${vehicleNumber}`);
     } catch (error) {
-      alert(error.response?.data?.error || 'Failed to book slot');
+      toast.error(error.response?.data?.error || 'Failed to book slot');
     } finally {
       setIsLoading(false);
     }
@@ -51,9 +52,9 @@ const UserDashboard = ({ setIsLoading }) => {
       setIsLoading(true);
       await parkingAPI.cancelBooking();
       await loadData();
-      alert('Booking cancelled successfully');
+      toast.success('Booking cancelled successfully');
     } catch (error) {
-      alert(error.response?.data?.error || 'Failed to cancel booking');
+      toast.error(error.response?.data?.error || 'Failed to cancel booking');
     } finally {
       setIsLoading(false);
     }
