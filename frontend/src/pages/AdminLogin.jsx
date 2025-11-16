@@ -22,30 +22,6 @@ const AdminLogin = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [backendStatus, setBackendStatus] = useState("checking");
-
-  // Check backend connectivity on component load
-  useEffect(() => {
-    const checkBackend = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/api/auth/verify", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-
-        if (response.ok || response.status === 401) {
-          // 401 is fine, means backend is up
-          setBackendStatus("online");
-        } else {
-          setBackendStatus("error");
-        }
-      } catch (error) {
-        setBackendStatus("offline");
-      }
-    };
-
-    checkBackend();
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -70,6 +46,7 @@ const AdminLogin = () => {
 
       if (response.data && response.data.token) {
         localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
         toast.success("Admin login successful!");
 
         // Small delay to ensure token is stored before navigation
@@ -84,9 +61,11 @@ const AdminLogin = () => {
 
       if (!error.response) {
         errorMessage +=
-          "Cannot connect to server. Is the backend running on port 5000?";
+          "Cannot connect to server. Please check if the backend is running.";
       } else if (error.response.status === 401) {
         errorMessage += "Invalid credentials";
+      } else if (error.response.status === 403) {
+        errorMessage += error.response.data?.error || "Access denied";
       } else if (error.response?.data?.error) {
         errorMessage += error.response.data.error;
       } else {
@@ -176,36 +155,12 @@ const AdminLogin = () => {
                 Password: Admin@123
               </div>
 
-              {/* Backend Status Indicator */}
-              <div
-                className={`p-3 rounded-lg text-sm ${
-                  backendStatus === "online"
-                    ? "bg-green-50 text-green-800"
-                    : backendStatus === "offline"
-                    ? "bg-red-50 text-red-800"
-                    : backendStatus === "error"
-                    ? "bg-yellow-50 text-yellow-800"
-                    : "bg-gray-50 text-gray-800"
-                }`}
-              >
-                <strong>Backend Status:</strong>{" "}
-                {backendStatus === "online" && "✅ Connected"}
-                {backendStatus === "offline" &&
-                  "❌ Offline - Start backend server"}
-                {backendStatus === "error" && "⚠️ Error connecting"}
-                {backendStatus === "checking" && "🔄 Checking..."}
-              </div>
-
               <Button
                 type="submit"
                 className="w-full bg-green-600 hover:bg-green-700"
-                disabled={isLoading || backendStatus !== "online"}
+                disabled={isLoading}
               >
-                {isLoading
-                  ? "Signing in..."
-                  : backendStatus !== "online"
-                  ? "Backend Offline"
-                  : "Sign In"}
+                {isLoading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
           </CardContent>
